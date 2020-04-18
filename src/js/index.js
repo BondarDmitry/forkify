@@ -12,9 +12,14 @@ const controlSearch = async () => {
         searchView.clearInput();
         searchView.clearResults();
         renderLoader(elements.searchRes);
-        await state.search.getResults();
-        clearLoader();
-        searchView.renderResults(state.search.result);
+        try {
+            await state.search.getResults();
+            clearLoader();
+            searchView.renderResults(state.search.result);
+        } catch (error) {
+            clearLoader();
+            alert("smth went wrong in serach...");
+        }
     }
 };
 
@@ -23,16 +28,33 @@ elements.searchForm.addEventListener("submit", (e) => {
     controlSearch();
 });
 
-elements.searchResPages.addEventListener('click', e => {
-    const btn = e.target.closest('.btn-inline')
-    if(btn) {
+elements.searchResPages.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-inline");
+    if (btn) {
         const goToPage = parseInt(btn.dataset.goto, 10);
         searchView.clearResults();
-        searchView.renderResults(state.search.result, goToPage)
+        searchView.renderResults(state.search.result, goToPage);
     }
-})
+});
 
-const r = new Recipe(47746)
-r.getRecipe()
+const controlRecipe = async () => {
+    const id = window.location.hash.replace("#", "");
+    if (id) {
+        state.recipe = new Recipe(id);
 
-console.log(r)
+        try {
+            await state.recipe.getRecipe();
+            state.recipe.calcTime();
+            state.recipe.calcServing();
+            state.recipe.parseIngredients();
+            console.log(state.recipe);
+        } catch (error) {
+            console.log(error);
+            alert("Error processing recipe!");
+        }
+    }
+};
+
+["hashchange", "load"].forEach((event) =>
+    window.addEventListener(event, controlRecipe)
+);
