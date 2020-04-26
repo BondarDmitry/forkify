@@ -24,7 +24,7 @@ export default class Recipe {
     calcTime() {
         const numImg = this.ingredients.length;
         const periods = Math.ceil(numImg / 3);
-        this.time - periods * 15;
+        this.time = periods * 15;
     }
 
     calcServing() {
@@ -52,6 +52,7 @@ export default class Recipe {
             "cup",
             "pound",
         ];
+        const units = [...unitsShort, "kg", "g"];
         const newIngredients = this.ingredients.map((el) => {
             let ingredient = el.toLowerCase();
             unitsLong.forEach((unit, index) => {
@@ -59,9 +60,7 @@ export default class Recipe {
             });
             ingredient = ingredient.replace(/ *\([^)]*\) */g, " ");
             const arrIng = ingredient.split(" ");
-            const unitIndex = arrIng.findIndex((el2) =>
-                unitsShort.includes(el2)
-            );
+            const unitIndex = arrIng.findIndex((el2) => units.includes(el2));
             let objIng;
             if (unitIndex > -1) {
                 let count;
@@ -94,5 +93,15 @@ export default class Recipe {
             return objIng;
         });
         this.ingredients = newIngredients;
+    }
+
+    updateServings(type) {
+        console.log(type);
+        const newServings =
+            type === "dec" ? this.serving - 1 : this.serving + 1;
+        this.ingredients.forEach((ing) => {
+            ing.count *= newServings / this.serving;
+        });
+        this.serving = newServings;
     }
 }
