@@ -1,13 +1,14 @@
 import Search from "./models/Search";
 import Recipe from "./models/Recipe";
 import List from "./models/List";
+import Likes from "./models/Likes";
 import * as searchView from "./views/searchView";
 import * as recipeView from "./views/recipeView";
 import * as listView from "./views/listView";
+import * as likesView from "./views/likesView";
 import { elements, renderLoader, clearLoader } from "./views/base";
 
 const state = {};
-window.state = state;
 
 const controlSearch = async () => {
     const query = searchView.getInput();
@@ -59,9 +60,8 @@ const controlRecipe = async () => {
 
             clearLoader();
 
-            recipeView.renderRecipe(state.recipe);
+            recipeView.renderRecipe(state.recipe, state.likes.isLiked(id));
         } catch (error) {
-            console.log(error);
             alert("Error processing recipe!");
         }
     }
@@ -71,12 +71,33 @@ const controlRecipe = async () => {
     window.addEventListener(event, controlRecipe)
 );
 
-const controlList = async () => {
+const controlList = () => {
     if (!state.list) state.list = new List();
     state.recipe.ingredients.forEach((ing) => {
         const item = state.list.addItem(ing.count, ing.unit, ing.ingredient);
         listView.renderItem(item);
     });
+};
+
+const controlLike = () => {
+    if (!state.likes) state.likes = new Likes();
+    const currentId = state.recipe.id;
+    if (!state.likes.isLiked(currentId)) {
+        const newLike = state.likes.addLike(
+            currentId,
+            state.recipe.title,
+            state.recipe.author,
+            state.recipe.img
+        );
+        likesView.toggleLike(true);
+        likesView.renderLike(newLike);
+    } else {
+        state.likes.deleteLike(currentId);
+        likesView.toggleLike(false);
+        likesView.deleteLike(currentId);
+    }
+
+    likesView.toggleLikeMenu(state.likes.getNumLikes());
 };
 
 elements.shopping.addEventListener("click", (e) => {
@@ -90,9 +111,17 @@ elements.shopping.addEventListener("click", (e) => {
     }
 });
 
+window.addEventListener("load", () => {
+    state.likes = new Likes();
+    state.likes.readStorage();
+
+    likesView.toggleLikeMenu(state.likes.getNumLikes());
+
+    state.likes.likes.forEach((like) => likesView.renderLike(like));
+});
+
 elements.recipe.addEventListener("click", (e) => {
     if (e.target.matches(".btn-decrease, .btn-decrease *")) {
-        console.log(state.recipe.serving);
         if (state.recipe.serving > 1) {
             state.recipe.updateServings("dec");
             recipeView.updateServingsIngredients(state.recipe);
@@ -102,8 +131,7 @@ elements.recipe.addEventListener("click", (e) => {
         recipeView.updateServingsIngredients(state.recipe);
     } else if (e.target.matches(".recipe__btn--add, .recipe__btn--add *")) {
         controlList();
+    } else if (e.target.matches(".recipe__love, .recipe__love *")) {
+        controlLike();
     }
 });
-
-const l = new List();
-window.l = l;

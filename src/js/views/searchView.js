@@ -8,7 +8,7 @@ export const clearResults = () => {
     elements.searchResultList.innerHTML = "";
     elements.searchResPages.innerHTML = "";
 };
-const limitRecipeTitle = (title, limit = 17) => {
+export const limitRecipeTitle = (title, limit = 17) => {
     const newTitle = [];
     if (title.length > limit) {
         title.split(" ").reduce((acc, cur) => {
@@ -28,7 +28,7 @@ export const highlightSelected = (id) => {
         res.classList.remove("results__link--active");
     });
     document
-        .querySelector(`a[href="#${id}"]`)
+        .querySelector(`.results__link[href*="#${id}"]`)
         .classList.add("results__link--active");
 };
 
